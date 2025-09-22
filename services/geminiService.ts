@@ -71,29 +71,57 @@ export const generateCode = async (
   }
 };
 
-export const refinePrompt = async (prompt: string): Promise<string> => {
-  const model = 'gemini-2.5-flash';
+export const getPromptSuggestions = async (prompt: string): Promise<string[]> => {
+    const model = 'gemini-2.5-flash';
 
-  const fullPrompt = `You are an expert prompt engineer. Your task is to refine the following user request for a code generator to be more detailed, specific, and clear, which will result in better code generation. A good prompt provides context and specifies requirements. Only return the refined prompt text itself, without any preamble, explanation, or quotation marks.
+    const fullPrompt = `You are an expert prompt engineer. Your task is to refine the following user request for a code generator to be more detailed, specific, and clear.
+Generate 3 distinct and creative suggestions. Each suggestion should explore a different angle or add a unique requirement to the original prompt.
+For example, if the user asks for a "login form", suggestions could be:
+1. A modern, responsive login form with social media login buttons (Google, Facebook).
+2. A secure login form with client-side and server-side validation, including password strength indicators.
+3. A multi-step login/registration flow using React hooks for state management.
 
 Original user request: "${prompt}"`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model,
-      contents: fullPrompt,
-    });
-    
-    const refinedText = response.text;
-    if (!refinedText) {
-        throw new Error("Received an empty response from the API while refining prompt.");
-    }
+    const schema = {
+        type: Type.OBJECT,
+        properties: {
+            suggestions: {
+                type: Type.ARRAY,
+                description: 'An array of 3 refined prompt suggestions as strings.',
+                items: {
+                    type: Type.STRING,
+                },
+            },
+        },
+        required: ["suggestions"],
+    };
 
-    return refinedText.trim();
-  } catch (error) {
-    throw handleApiError(error);
-  }
+    try {
+        const response = await ai.models.generateContent({
+            model,
+            contents: fullPrompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            },
+        });
+
+        const jsonText = response.text.trim();
+        if (!jsonText) {
+            throw new Error("Received an empty response from the API while refining prompt.");
+        }
+        const parsed = JSON.parse(jsonText);
+        if (!parsed.suggestions || !Array.isArray(parsed.suggestions)) {
+            throw new Error("Response did not contain valid suggestions.");
+        }
+        return parsed.suggestions;
+
+    } catch (error) {
+        throw handleApiError(error);
+    }
 };
+
 
 export const getRecommendations = async (code: string, language: SupportedLanguage): Promise<string> => {
   const model = 'gemini-2.5-flash';

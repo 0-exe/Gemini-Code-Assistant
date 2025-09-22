@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { SupportedLanguage, SavedSnippet, TestGenerationOutput, UploadedFile } from './types';
-import { generateCode, refinePrompt, getRecommendations, generateTests } from './services/geminiService';
+import { generateCode, getPromptSuggestions, getRecommendations, generateTests } from './services/geminiService';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
 import LanguageSelector from './components/LanguageSelector';
@@ -14,6 +14,7 @@ import SavedSnippets from './components/SavedSnippets';
 import TestGenerator from './components/TestGenerator';
 import FileUpload from './components/FileUpload';
 import { BookmarkIcon } from './components/Icons';
+import PromptSuggestionsModal from './components/PromptSuggestionsModal';
 
 const RECENT_PROMPTS_KEY = 'gemini-code-gen-recent-prompts';
 const SAVED_SNIPPETS_KEY = 'gemini-code-gen-saved-snippets';
@@ -35,6 +36,9 @@ const App: React.FC = () => {
   const [isSaveModalOpen, setIsSaveModalOpen] = useState<boolean>(false);
   const [showSavedSnippets, setShowSavedSnippets] = useState<boolean>(false);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [isSuggestionsModalOpen, setIsSuggestionsModalOpen] = useState<boolean>(false);
+  const [promptSuggestions, setPromptSuggestions] = useState<string[]>([]);
+
 
   useEffect(() => {
     try {
@@ -103,25 +107,33 @@ const App: React.FC = () => {
     }
   }, [prompt, language, uploadedFile, addPromptToRecent]);
 
-  const handleRefinePrompt = useCallback(async () => {
+  const handleGetPromptSuggestions = useCallback(async () => {
     if (!prompt) {
-      setError('Please enter a prompt to refine.');
+      setError('Please enter a prompt to get suggestions.');
       return;
     }
     addPromptToRecent(prompt);
     setIsRefining(true);
     setError(null);
-
+    setPromptSuggestions([]);
+    setIsSuggestionsModalOpen(true);
+  
     try {
-      const refined = await refinePrompt(prompt);
-      setPrompt(refined);
+      const suggestions = await getPromptSuggestions(prompt);
+      setPromptSuggestions(suggestions);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      setError(err instanceof Error ? err.message : 'An unknown error occurred while getting suggestions.');
+      setIsSuggestionsModalOpen(false); // Close modal on error
     } finally {
       setIsRefining(false);
     }
   }, [prompt, addPromptToRecent]);
   
+  const handleSelectSuggestion = (suggestion: string) => {
+    setPrompt(suggestion);
+    setIsSuggestionsModalOpen(false);
+  };
+
   const handleGetRecommendations = useCallback(async () => {
     if (!generatedCode) {
         setError('No code to get recommendations for.');
@@ -233,7 +245,7 @@ const App: React.FC = () => {
             <LanguageSelector value={language} onChange={(e) => setLanguage(e.target.value as SupportedLanguage)} />
             <ActionButtons
               onGenerate={handleGenerateCode}
-              onRefine={handleRefinePrompt}
+              onRefine={handleGetPromptSuggestions}
               onClear={handleClear}
               isGenerating={isLoading}
               isRefining={isRefining}
@@ -286,6 +298,14 @@ const App: React.FC = () => {
           onLoad={handleLoadSnippet}
           onDelete={handleDeleteSnippet}
           onClose={() => setShowSavedSnippets(false)}
+        />
+      )}
+      {isSuggestionsModalOpen && (
+        <PromptSuggestionsModal
+          isLoading={isRefining}
+          suggestions={promptSuggestions}
+          onClose={() => setIsSuggestionsModalOpen(false)}
+          onSelect={handleSelectSuggestion}
         />
       )}
     </div>
