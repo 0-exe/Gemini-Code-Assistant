@@ -1,0 +1,106 @@
+@import url('https://rsms.me/inter/inter.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Body & Animated Gradient Background --- */
+html {
+  font-family: 'Inter', sans-serif;
+}
+
+@supports (font-variation-settings: normal) {
+  html { font-family: 'Inter var', sans-serif; }
+}
+
+body {
+  background: linear-gradient(-45deg, #1f005c, #3c096c, #5a189a, #023e8a);
+  background-size: 400% 400%;
+  animation: gradient-animation 15s ease infinite;
+}
+
+@keyframes gradient-animation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* --- Glassmorphism Effect --- */
+.glass-effect {
+  background: rgba(23, 23, 35, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(18, 1, 46, 0.37);
+}
+
+/* --- Animated Transitions --- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); }
+  to { transform: translateY(0); }
+}
+
+.fade-in-slide-up {
+  animation: fadeIn 0.5s ease-out forwards, slideUp 0.5s ease-out forwards;
+}
+
+/* --- Interactive Element Enhancements --- */
+
+/* Glowing border for inputs */
+.glowing-border-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.4), 0 0 15px rgba(167, 139, 250, 0.3);
+  border-color: #a78bfa; /* violet-400 */
+}
+
+/* Button Hover Effects */
+.btn-transition {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.btn-transition:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-transition:disabled {
+  transform: none;
+  box-shadow: none;
+}
+
+
+/* Glowing effect for the main button */
+.glowing-button {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 5px #c084fc, 0 0 10px #c084fc;
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.glowing-button:hover:not(:disabled) {
+   box-shadow: 0 0 10px #c084fc, 0 0 20px #c084fc, 0 0 30px #c084fc;
+}
+
+/* --- Prism.js Theme Overrides for better integration --- */
+pre[class*="language-"] {
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  text-shadow: none !important;
+}
+
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #f8f8f2;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-family: 'Fira Code', 'Dank Mono', 'Source Code Pro', monospace;
+}

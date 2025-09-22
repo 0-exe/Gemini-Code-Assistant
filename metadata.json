@@ -1,0 +1,5 @@
+{
+  "name": "Gemini Code Generator",
+  "description": "An application to generate code snippets in various programming languages using the Gemini API. Users can input a description of the desired code, select a language, and generate the code. It also includes a feature to refine the user's prompt for better results.",
+  "requestFramePermissions": []
+}
